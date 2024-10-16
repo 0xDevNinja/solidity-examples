@@ -69,13 +69,6 @@ $ npx hardhat test
 2. [Multi Sig Wallet](contracts/solidity_by_examples/02_multi_sig_wallet/)
 3. [Wrapped ETH (WETH)](contracts/solidity_by_examples/03_WETH/)
 
-## Contributors
-
-We love pull requests from everyone. By participating in submitting examples, we believe other people will find them useful when they getting started with Solidity.
-
-- [Samnang Chhun](https://twitter.com/samnangchhun)
-- [Web3 Together](https://twitter.com/web3together)
-
 ## License
 
 The software is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
