@@ -54,6 +54,45 @@ $ npx hardhat test
 10. [Vault / Liquidity Pool](contracts/sample_apps/10_vault/)
 11. [Flash Loan](contracts/sample_apps/11_flash_loan/). (See more [resources](https://github.com/samnang/flash-loan-examples))
 12. [Uniswap - Simple Swap](contracts/sample_apps/12_uniswap_simple_swap/)
+13. [Crowdfunding](contracts/sample_apps/13_crowdfunding/)
+
+## ERC Standards
+
+1. [ERC1155 GameItems](contracts/erc_standards/01_erc1155/)
+2. [ERC2612 Permit Token](contracts/erc_standards/02_erc2612_permit/)
+3. [ERC4626 Tokenized Vault](contracts/erc_standards/03_erc4626_vault/)
+
+## Security Patterns
+
+1. [Reentrancy Attack Demo](contracts/security_patterns/01_reentrancy_attack/)
+2. [Pull Payment Auction](contracts/security_patterns/02_pull_payment/)
+3. [ECDSA Signature Verifier](contracts/security_patterns/03_signature_verifier/)
+4. [Commit-Reveal Voting](contracts/security_patterns/04_commit_reveal/)
+5. [EIP-712 Typed Data Signer](contracts/security_patterns/05_eip712_typed_data/)
+
+## DeFi Primitives
+
+1. [Merkle Airdrop](contracts/defi_primitives/01_merkle_airdrop/)
+2. [Linear Vesting](contracts/defi_primitives/02_linear_vesting/)
+3. [Staking Rewards](contracts/defi_primitives/03_staking_rewards/)
+4. [Constant Product AMM](contracts/defi_primitives/04_constant_product_amm/)
+5. [Bonding Curve Token](contracts/defi_primitives/05_bonding_curve/)
+
+## Upgradeability
+
+1. [UUPS Upgradeable Counter](contracts/upgradeability/01_uups/)
+2. [Transparent Proxy Box](contracts/upgradeability/02_transparent/)
+3. [Minimal Diamond (EIP-2535)](contracts/upgradeability/03_minimal_diamond/)
+
+## Governance
+
+1. [Simple Token-Weighted DAO](contracts/governance/01_simple_dao/)
+2. [Governor + Timelock](contracts/governance/02_governor_timelock/)
+
+## Account Abstraction
+
+1. [Simple Account (ERC-4337 minimal)](contracts/account_abstraction/01_simple_account/)
+2. [Paymaster](contracts/account_abstraction/02_paymaster/)
 
 ## Road to Web3
 
