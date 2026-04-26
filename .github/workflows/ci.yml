@@ -1,0 +1,85 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx hardhat compile
+      - name: cache artifacts for downstream jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardhat-artifacts
+          path: |
+            artifacts/
+            cache/
+          retention-days: 1
+
+  test:
+    name: test
+    needs: compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: hardhat-artifacts
+      - run: npx hardhat test
+
+  slither:
+    name: slither
+    needs: compile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: hardhat-artifacts
+      - name: slither
+        uses: crytic/slither-action@v0.4.0
+        id: slither
+        continue-on-error: true
+        with:
+          node-version: "20"
+          fail-on: high
+          slither-args: "--exclude-dependencies --filter-paths 'node_modules|test'"
+          sarif: results.sarif
+      - name: upload SARIF
+        if: always() && steps.slither.outputs.sarif != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.slither.outputs.sarif }}
+      - name: fail on high/critical
+        if: steps.slither.outcome == 'failure'
+        run: |
+          echo "::error::slither found High or Critical findings"
+          exit 1

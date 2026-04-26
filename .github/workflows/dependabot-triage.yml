@@ -1,0 +1,77 @@
+name: dependabot-triage
+
+# Auto-merge safe dependabot bumps; hold deps owned by the migration routine.
+# Runs:
+#   - on every dependabot PR (handles patch/minor immediately once CI is green)
+#   - weekly Mondays 03:30 UTC (sweeps anything missed)
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled]
+  schedule:
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  triage:
+    if: github.event_name != 'pull_request_target' || github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: fetch dependabot metadata
+        if: github.event_name == 'pull_request_target'
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: classify and act on this PR
+        if: github.event_name == 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DEP_NAMES: ${{ steps.meta.outputs.dependency-names }}
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+        run: |
+          set -euo pipefail
+          # Hold list — deps owned by the OZ5/ethers-v6 migration routine.
+          HOLD_REGEX='^(@openzeppelin/contracts|ethers|@typechain/.*|@nomiclabs/hardhat-ethers|@nomicfoundation/hardhat-ethers|hardhat|@nomicfoundation/hardhat-toolbox|@chainlink/contracts|@uniswap/.*)$'
+          # Auto-merge allowlist — dev tooling, safe at patch/minor.
+          AUTO_REGEX='^(prettier|dotenv|hardhat-gas-reporter|solidity-coverage|@types/.*|typescript|ts-node|chai|mocha|@nomicfoundation/hardhat-network-helpers|@nomicfoundation/hardhat-chai-matchers|solidity-shell)$'
+
+          for dep in $DEP_NAMES; do
+            if [[ "$dep" =~ $HOLD_REGEX ]]; then
+              echo "::notice::$dep is on the hold list (migration routine owns this)"
+              gh pr comment "$PR_URL" --body "Held: \`$dep\` is owned by the OZ 5.x + ethers v6 migration routine. Not auto-merging."
+              exit 0
+            fi
+            if [[ "$dep" =~ $AUTO_REGEX ]] && [[ "$UPDATE_TYPE" =~ ^version-update:semver-(patch|minor)$ ]]; then
+              echo "::notice::auto-merging $dep ($UPDATE_TYPE)"
+              gh pr merge --auto --squash --delete-branch "$PR_URL"
+              exit 0
+            fi
+            if [[ "$UPDATE_TYPE" == "version-update:semver-major" ]]; then
+              echo "::warning::$dep major bump — leaving open for human review"
+              gh pr comment "$PR_URL" --body "Major bump for \`$dep\`. Not auto-merging — please review breaking changes."
+              exit 0
+            fi
+          done
+
+      - name: weekly sweep
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh pr list --repo ${{ github.repository }} --state open \
+            --author 'app/dependabot' \
+            --json number,mergeable,mergeStateStatus,title \
+            --jq '.[] | select(.mergeStateStatus == "DIRTY" or .mergeStateStatus == "CONFLICTING") | .number' \
+          | while read -r num; do
+              echo "::notice::requesting rebase on #$num"
+              gh pr comment "$num" --body "@dependabot rebase"
+            done

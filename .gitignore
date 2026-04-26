@@ -7,3 +7,11 @@ typechain
 #Hardhat files
 cache
 artifacts
+
+# Block future .github additions; explicitly allow currently tracked workflows.
+# Add a `!.github/<path>` line below when intentionally adding new workflows.
+.github/**
+!.github/dependabot.yml
+!.github/workflows/
+!.github/workflows/ci.yml
+!.github/workflows/dependabot-triage.yml
