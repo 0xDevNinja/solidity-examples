@@ -71,7 +71,7 @@ jobs:
         with:
           node-version: "20"
           fail-on: high
-          slither-args: "--exclude-dependencies --filter-paths 'node_modules|test|contracts/road_to_web3/week_05'"
+          slither-args: "--exclude-dependencies --filter-paths 'node_modules|test'"
           sarif: results.sarif
       - name: upload SARIF
         if: always() && steps.slither.outputs.sarif != ''

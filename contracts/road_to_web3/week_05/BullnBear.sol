@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
 contract BullnBear is
@@ -19,7 +19,7 @@ contract BullnBear is
     ERC721Enumerable,
     ERC721URIStorage,
     Ownable,
-    KeeperCompatibleInterface,
+    AutomationCompatibleInterface,
     VRFConsumerBaseV2
 {
     using Counters for Counters.Counter;
@@ -96,21 +96,11 @@ contract BullnBear is
 
     function checkUpkeep(
         bytes calldata /* checkData */
-    )
-        external
-        view
-        override
-        returns (
-            bool, /* upkeepNeeded */
-            bytes memory /* performData */
-        )
-    {
+    ) external view override returns (bool /* upkeepNeeded */, bytes memory /* performData */) {
         return ((block.timestamp - lastTimeStamp) > interval, new bytes(0));
     }
 
-    function performUpkeep(
-        bytes calldata /* performData */
-    ) external override {
+    function performUpkeep(bytes calldata /* performData */) external override {
         // Highly recommend revalidating the upkeep in the performUpkeep function
         if ((block.timestamp - lastTimeStamp) > interval) {
             lastTimeStamp = block.timestamp;
